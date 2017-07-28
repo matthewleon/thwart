@@ -1,5 +1,6 @@
 module Data.Dictionary where
 
+import Data.Foldable (class Foldable, foldl)
 import Data.StrMap (StrMap)
 import Data.StrMap as StrMap
 import Prelude
@@ -18,3 +19,6 @@ has s (Dictionary d) = StrMap.member s d
 
 size :: Dictionary -> Int
 size (Dictionary d) = StrMap.size d
+
+load :: forall f. Foldable f => f String -> Dictionary
+load = foldl (flip insert) init
