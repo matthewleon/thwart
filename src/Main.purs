@@ -19,6 +19,7 @@ import Node.Encoding (Encoding(ASCII))
 import Node.FS (FS)
 import Node.FS.Sync (readTextFile)
 import Node.Path (FilePath)
+import Node.ReadLine (READLINE, prompt, setLineHandler, setPrompt,  noCompletion, createConsoleInterface)
 
 import Partial.Unsafe (unsafePartial)
 
@@ -58,12 +59,13 @@ randomElem :: forall a eff. Array a -> Eff (random :: RANDOM | eff) a
 randomElem xs =
   unsafePartial $ fromJust <<< Array.index xs <$> randomInt 0 (Array.length xs)
 
-main :: forall e. Eff (console :: CONSOLE, fs :: FS, exception :: EXCEPTION, random :: RANDOM | e) Unit
+main :: forall e. Eff (console :: CONSOLE, fs :: FS, exception :: EXCEPTION, random :: RANDOM, readline :: READLINE | e) Unit
 main = do
   dict <- dictionaryFromFile "src/dictionary.txt"
   startWord <- randomElem $ potentialStartWords dict endWord
-  play startWord
-
-play :: forall e. String -> Eff (console :: CONSOLE | e) Unit
-play startWord = do
   log startWord
+  interface <- createConsoleInterface noCompletion
+  setPrompt "> " 2 interface
+  setLineHandler interface $ \s -> do
+    log $ "You typed: " <> s
+    prompt interface
