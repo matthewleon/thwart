@@ -4,10 +4,12 @@ import Prelude
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Exception (EXCEPTION)
+import Control.Monad.Eff.Random (RANDOM, randomInt)
 import Data.Array as Array
 import Data.Dictionary (Dictionary)
 import Data.Dictionary as Dictionary
 import Data.Foldable (any)
+import Data.Maybe (fromJust)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String (Pattern(Pattern))
@@ -17,6 +19,8 @@ import Node.Encoding (Encoding(ASCII))
 import Node.FS (FS)
 import Node.FS.Sync (readTextFile)
 import Node.Path (FilePath)
+
+import Partial.Unsafe (unsafePartial)
 
 data GameState = GameState {
   playedWords :: Set String
@@ -31,7 +35,7 @@ endWord :: String
 endWord = "THWART"
 
 dictionaryFromFile
-  :: forall eff. 
+  :: forall eff.
      FilePath
   -> Eff (fs :: FS, exception :: EXCEPTION | eff) Dictionary
 dictionaryFromFile path =
@@ -50,7 +54,16 @@ potentialStartWords allWords endWord' =
       any (flip Set.member (Set.fromFoldable $ String.toCharArray fromStr))
           (String.toCharArray testStr)
 
-main :: forall e. Eff (console :: CONSOLE, fs :: FS, exception :: EXCEPTION | e) Unit
+randomElem :: forall a eff. Array a -> Eff (random :: RANDOM | eff) a
+randomElem xs =
+  unsafePartial $ fromJust <<< Array.index xs <$> randomInt 0 (Array.length xs)
+
+main :: forall e. Eff (console :: CONSOLE, fs :: FS, exception :: EXCEPTION, random :: RANDOM | e) Unit
 main = do
   dict <- dictionaryFromFile "src/dictionary.txt"
-  log $ show dict
+  startWord <- randomElem $ potentialStartWords dict endWord
+  play startWord
+
+play :: forall e. String -> Eff (console :: CONSOLE | e) Unit
+play startWord = do
+  log startWord
