@@ -6,7 +6,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Random (RANDOM, randomInt)
-import Control.Monad.ST (runST, newSTRef, readSTRef)
+import Control.Monad.ST (runST, newSTRef, readSTRef, writeSTRef)
 import Data.Array as Array
 import Data.Dictionary (Dictionary)
 import Data.Dictionary as Dictionary
@@ -92,8 +92,11 @@ main = do
   runST do
     currentState <- newSTRef initialGameState
     setLineHandler interface $ \s -> do
-      log =<< show <$> readSTRef currentState
-      log $ "You typed: " <> s
+      currentState' <- readSTRef currentState
+      log $ show currentState'
+      case turn currentState' dict s of
+        Just newState -> void $ writeSTRef currentState newState
+        Nothing -> pure unit
       prompt interface
 
 -- TODO: monadify
