@@ -13,6 +13,7 @@ import Data.Foldable (any)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Maybe (Maybe(..), fromJust)
+import Data.Ord (abs)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String (Pattern(Pattern))
@@ -26,6 +27,7 @@ import Partial.Unsafe (unsafePartial)
 
 newtype GameState = GameState {
   playedWords :: Set String
+, previousWord :: String
 , score1 :: Int
 , score2 :: Int
 , currentPlayer :: Player
@@ -82,18 +84,25 @@ main = do
 turn :: GameState -> Dictionary -> String -> Maybe GameState
 turn (GameState gs) dict str
   | dict `Dictionary.has` str =
-    let playedWords' = Set.insert str gs.playedWords
+    let playedWords' = Set.insert gs.previousWord gs.playedWords
     in  Just <<< GameState $ case gs.currentPlayer of
           Player1 -> {
             playedWords: playedWords'
-          , score1: gs.score1
+          , previousWord: str
+          , score1: gs.score1 + movePoints str gs.previousWord gs.playedWords
           , score2: gs.score2
           , currentPlayer: Player2
           }
           Player2 -> {
             playedWords: playedWords'
+          , previousWord: str
           , score1: gs.score1
-          , score2: gs.score2
+          , score2: gs.score2 + movePoints str gs.previousWord gs.playedWords
           , currentPlayer: Player1
           }
   | otherwise = Nothing
+
+movePoints :: String -> String -> Set String -> Int
+movePoints newWord lastWord playedWords
+  | Set.member newWord playedWords = 0
+  | otherwise = abs $ String.length newWord - String.length lastWord
