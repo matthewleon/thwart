@@ -6,6 +6,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Random (RANDOM, randomInt)
+import Control.Monad.ST (runST, newSTRef, readSTRef)
 import Data.Array as Array
 import Data.Dictionary (Dictionary)
 import Data.Dictionary as Dictionary
@@ -87,9 +88,13 @@ main = do
 
   interface <- createConsoleInterface noCompletion
   setPrompt "> " 2 interface
-  setLineHandler interface $ \s -> do
-    log $ "You typed: " <> s
-    prompt interface
+
+  runST do
+    currentState <- newSTRef initialGameState
+    setLineHandler interface $ \s -> do
+      log =<< show <$> readSTRef currentState
+      log $ "You typed: " <> s
+      prompt interface
 
 -- TODO: monadify
 turn :: GameState -> Dictionary -> String -> Maybe GameState
