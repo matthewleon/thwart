@@ -1,6 +1,7 @@
 module Main where
 
 import Prelude
+
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Exception (EXCEPTION)
@@ -9,28 +10,35 @@ import Data.Array as Array
 import Data.Dictionary (Dictionary)
 import Data.Dictionary as Dictionary
 import Data.Foldable (any)
-import Data.Maybe (fromJust)
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
+import Data.Maybe (Maybe(..), fromJust)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String (Pattern(Pattern))
 import Data.String as String
-
 import Node.Encoding (Encoding(ASCII))
 import Node.FS (FS)
 import Node.FS.Sync (readTextFile)
 import Node.Path (FilePath)
-import Node.ReadLine (READLINE, prompt, setLineHandler, setPrompt,  noCompletion, createConsoleInterface)
-
+import Node.ReadLine (READLINE, prompt, setLineHandler, setPrompt, noCompletion, createConsoleInterface)
 import Partial.Unsafe (unsafePartial)
 
-data GameState = GameState {
+newtype GameState = GameState {
   playedWords :: Set String
 , score1 :: Int
 , score2 :: Int
-, turn :: Player
+, currentPlayer :: Player
 }
+derive instance genericGameState :: Generic GameState _
+instance showGameState :: Show GameState where
+  show = genericShow
 
 data Player = Player1 | Player2
+derive instance eqPlayer :: Eq Player
+instance showPlayer :: Show Player where
+  show Player1 = "Player1"
+  show Player2 = "Player2"
 
 endWord :: String
 endWord = "THWART"
@@ -69,3 +77,23 @@ main = do
   setLineHandler interface $ \s -> do
     log $ "You typed: " <> s
     prompt interface
+
+-- TODO: monadify
+turn :: GameState -> Dictionary -> String -> Maybe GameState
+turn (GameState gs) dict str
+  | dict `Dictionary.has` str =
+    let playedWords' = Set.insert str gs.playedWords
+    in  Just <<< GameState $ case gs.currentPlayer of
+          Player1 -> {
+            playedWords: playedWords'
+          , score1: gs.score1
+          , score2: gs.score2
+          , currentPlayer: Player2
+          }
+          Player2 -> {
+            playedWords: playedWords'
+          , score1: gs.score1
+          , score2: gs.score2
+          , currentPlayer: Player1
+          }
+  | otherwise = Nothing

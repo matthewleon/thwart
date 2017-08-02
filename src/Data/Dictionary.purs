@@ -15,8 +15,8 @@ init = Dictionary $ StrMap.empty
 insert :: String -> Dictionary -> Dictionary
 insert s (Dictionary d) = Dictionary $ StrMap.insert s unit d
 
-has :: String -> Dictionary -> Boolean
-has s (Dictionary d) = StrMap.member s d
+has :: Dictionary -> String -> Boolean
+has (Dictionary d) s = StrMap.member s d
 
 size :: Dictionary -> Int
 size (Dictionary d) = StrMap.size d
