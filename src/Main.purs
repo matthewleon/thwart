@@ -36,6 +36,15 @@ derive instance genericGameState :: Generic GameState _
 instance showGameState :: Show GameState where
   show = genericShow
 
+initGameState :: String -> GameState
+initGameState startWord = GameState {
+    playedWords: Set.empty
+  , previousWord: startWord
+  , score1: 0
+  , score2: 0
+  , currentPlayer: Player1
+  }
+
 data Player = Player1 | Player2
 derive instance eqPlayer :: Eq Player
 instance showPlayer :: Show Player where
@@ -73,7 +82,9 @@ main :: forall e. Eff (console :: CONSOLE, fs :: FS, exception :: EXCEPTION, ran
 main = do
   dict <- dictionaryFromFile "src/dictionary.txt"
   startWord <- randomElem $ potentialStartWords dict endWord
-  log startWord
+
+  let initialGameState = initGameState startWord
+
   interface <- createConsoleInterface noCompletion
   setPrompt "> " 2 interface
   setLineHandler interface $ \s -> do
