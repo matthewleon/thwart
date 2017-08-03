@@ -21,7 +21,8 @@
     "purescript-random": "^3.0.0",
     "purescript-node-readline": "^3.0.0",
     "purescript-generics-rep": "^5.1.0",
-    "purescript-st": "^3.0.0"
+    "purescript-st": "^3.0.0",
+    "purescript-nonempty": "^4.0.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0"
