@@ -1,0 +1,23 @@
+{
+    "name": "thwart",
+    "set": "psc-0.11.6-prime",
+    "source": "https://github.com/purescript/package-sets.git",
+    "depends": [
+        "prelude"
+    ,   "console"
+    ,   "arrays"
+    ,   "maps"
+    ,   "sets"
+    ,   "lists"
+    ,   "foldable-traversable"
+    ,   "node-path"
+    ,   "node-fs"
+    ,   "strings"
+    ,   "exceptions"
+    ,   "random"
+    ,   "node-readline"
+    ,   "generics-rep"
+    ,   "st"
+    ,   "nonempty"
+    ]
+}
